@@ -1,0 +1,14 @@
+venv/
+*/venv/
+db.sqlite3
+*.pyc
+__pycache__/
+.DS_Store
+yolov5/runs/
+PhotoBlogServer/media/
+.gradle/
+.idea/
+*.iml
+local.properties
+build/
+captures/
