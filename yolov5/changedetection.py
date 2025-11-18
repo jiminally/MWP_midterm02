@@ -12,6 +12,10 @@ class ChangeDetection:
     token = ''
     title = ''
     text = ''
+    detection_count = {}
+    
+    # 필터링할 객체 목록 (원하는 객체만 추가!)
+    FILTER_OBJECTS = ['microwave']
     
     def __init__(self, names):
         self.result_prev = [0 for i in range(len(names))]
@@ -27,23 +31,41 @@ class ChangeDetection:
         res.raise_for_status()
         self.token = res.json()['token']
         print(f"Token obtained: {self.token}")
+        print(f"🔍 Filtering objects: {self.FILTER_OBJECTS}")
 
 
     def add(self, names, detected_current, save_dir, image):
         self.title = ''
         self.text = ''
-        change_flag = 0  # 변화 감지 플래그
+        change_flag = 0
         i = 0
         while i < len(self.result_prev):
             if self.result_prev[i]==0 and detected_current[i]==1:
-                change_flag = 1
-                self.title = names[i]
-                self.text += names[i] + ", "
+                # 필터링 조건
+                if names[i] in self.FILTER_OBJECTS:
+                    change_flag = 1
+                    self.title = names[i]
+                    self.text += names[i] + ", "
+                else:
+                    print(f"⏭️  Skipped: {names[i]} (not in filter)")
             i += 1
         
-        self.result_prev = detected_current[:]  # 객체 검출 상태 저장
+        self.result_prev = detected_current[:]
         
         if change_flag==1:
+            # 통계 카운트
+            if self.title not in self.detection_count:
+                self.detection_count[self.title] = 0
+            self.detection_count[self.title] += 1
+            
+            # 통계 출력
+            print("\n" + "="*50)
+            print("📊 Detection Statistics:")
+            print("="*50)
+            for obj, count in sorted(self.detection_count.items()):
+                print(f"   {obj}: {count}회")
+            print("="*50 + "\n")
+            
             self.send(save_dir, image)
 
 
